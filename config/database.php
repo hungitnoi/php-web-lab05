@@ -1,0 +1,1 @@
+<?php return ['host' => 'localhost', 'database' => 'course_enrollment_app', 'username' => 'root', 'password' => '', 'charset' => 'utf8mb4'];

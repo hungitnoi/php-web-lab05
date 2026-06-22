@@ -4,10 +4,16 @@ class EnrollmentRepository {
 
     public function countAll(string $kw = ''): int {
         $sql = "SELECT COUNT(*) AS total FROM enrollments";
-        if ($kw !== '') $sql .= " WHERE enrollment_code LIKE :kw OR student_email LIKE :kw OR course_name LIKE :kw";
+        if ($kw !== '') $sql .= " WHERE enrollment_code LIKE :kw1 OR student_email LIKE :kw2 OR course_name LIKE :kw3";
+        
         $stmt = $this->db->prepare($sql);
-        if ($kw !== '') $stmt->bindValue(':kw', "%$kw%");
-        $stmt->execute(); return (int) ($stmt->fetch()['total'] ?? 0);
+        if ($kw !== '') {
+            $stmt->bindValue(':kw1', "%$kw%");
+            $stmt->bindValue(':kw2', "%$kw%");
+            $stmt->bindValue(':kw3', "%$kw%");
+        }
+        $stmt->execute(); 
+        return (int) ($stmt->fetch()['total'] ?? 0);
     }
 
     public function getPaginated(string $kw, int $limit, int $offset, string $sort, string $dir): array {
@@ -15,14 +21,23 @@ class EnrollmentRepository {
         $sort = in_array($sort, $sorts) ? $sort : 'created_at';
         $dir = strtolower($dir) === 'asc' ? 'asc' : 'desc';
         
-        $sql = "SELECT * FROM enrollments" . ($kw !== '' ? " WHERE enrollment_code LIKE :kw OR student_email LIKE :kw OR course_name LIKE :kw" : "") . " ORDER BY {$sort} {$dir} LIMIT :limit OFFSET :offset";
+        $sql = "SELECT * FROM enrollments";
+        if ($kw !== '') $sql .= " WHERE enrollment_code LIKE :kw1 OR student_email LIKE :kw2 OR course_name LIKE :kw3";
+        $sql .= " ORDER BY {$sort} {$dir} LIMIT :limit OFFSET :offset";
+        
         $stmt = $this->db->prepare($sql);
-        if ($kw !== '') $stmt->bindValue(':kw', "%$kw%");
+        if ($kw !== '') {
+            $stmt->bindValue(':kw1', "%$kw%");
+            $stmt->bindValue(':kw2', "%$kw%");
+            $stmt->bindValue(':kw3', "%$kw%");
+        }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute(); return $stmt->fetchAll();
+        $stmt->execute(); 
+        return $stmt->fetchAll();
     }
 
+    // ... Các hàm create, update, delete giữ nguyên như cũ ...
     public function findById(int $id): ?array {
         $stmt = $this->db->prepare("SELECT * FROM enrollments WHERE id = :id");
         $stmt->execute(['id' => $id]); return $stmt->fetch() ?: null;
